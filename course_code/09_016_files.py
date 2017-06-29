@@ -1,0 +1,12 @@
+file = open('data/test.cfg', 'w')
+file.write('[Bob]\n')
+file.write('race = zombie\n')
+file.write('health = 50\n')
+file.write('[Alice]\n')
+file.write('race = troll\n')
+file.write('health = 100\n')
+file.close()
+
+file = open('data/test.cfg')
+print(file.read())
+file.close()
