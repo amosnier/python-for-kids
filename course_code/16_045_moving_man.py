@@ -8,8 +8,6 @@ class Man:
         self.normal_move = normal_move
         self.canvas_width = self.canvas.winfo_width()
         self.canvas_height = self.canvas.winfo_height()
-        self.size_x = 100
-        self.size_y = 10
         start_x = self.canvas_width / 2
         start_y = self.canvas_height
         self.left_images = [tkinter.PhotoImage(file='gif/stick-L1.gif'),

@@ -80,6 +80,15 @@ class Man:
         elif self.dx > 0:
             canvas.itemconfig(self.id, image=self.right_images[self.image_index])
 
+class Platform:
+    def __init__(self, canvas, platform_type, x, y):
+        self.canvas = canvas
+        self.canvas_width = self.canvas.winfo_width()
+        self.canvas_height = self.canvas.winfo_height()
+        self.image_files = ['gif/platform1.gif', 'gif/platform2.gif', 'gif/platform3.gif']
+        self.image = tkinter.PhotoImage(file=self.image_files[platform_type])
+        self.id = canvas.create_image(x, y, image=self.image, anchor='nw')
+
 tk.title('Mr. Stickman races for the exit')
 tk.resizable(0, 0)
 
@@ -93,6 +102,8 @@ for x in range(0, 5):
     for y in range(0, 5):
         canvas.create_image(x * w, y * h, image=background, anchor='nw')
 
+platforms = [Platform(canvas, 1, 100, 450),
+             Platform(canvas, 0, 300, 450)]
 man = Man(canvas, 4)
 
 def handle_timer_event():
