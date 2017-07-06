@@ -5,8 +5,9 @@ tk = tkinter.Tk()
 
 class Man:
     def __init__(self, canvas, normal_move):
-        self.canvas = canvas
+        self.canvas = canvas 
         self.normal_move = normal_move
+        self.jump_move = normal_move * 1.4
         self.canvas_width = self.canvas.winfo_width()
         self.canvas_height = self.canvas.winfo_height()
         self.size_x = 100
@@ -22,20 +23,29 @@ class Man:
         self.image_index = 0
         self.image_index_incr = 1
         self.image_time = time.time()
-        self.id = canvas.create_image(start_x, start_y, image=self.left_images[0], anchor='sw')
+        self.id = canvas.create_image(start_x, start_y - self.left_images[0].height(), image=self.left_images[0], anchor='nw')
         self.canvas.bind_all('<KeyPress-Left>', self.turn_left)
         self.canvas.bind_all('<KeyPress-Right>', self.turn_right)
+        self.canvas.bind_all('<space>', self.jump)
         self.dx = 0
+        self.dy = 0
+        self.jump_count = 0
 
     def turn_left(self, event):
         self.dx = -self.normal_move
             
     def turn_right(self, event):
         self.dx = self.normal_move
+        
+    def jump(self, event):
+        if self.dy == 0:
+            self.dy = -self.jump_move
+            self.jump_count = 0
 
     def move(self):
-        self.check_for_walls()
-        self.canvas.move(self.id, self.dx, 0)
+        self.check_for_building()
+        self.canvas.move(self.id, self.dx, self.dy)
+        self.handle_jumping()
         self.animate()
 
     def coords(self):
@@ -43,10 +53,19 @@ class Man:
         return [coords[0], coords[1],
                 coords[0] + self.left_images[0].width(), coords[1] + self.left_images[0].height()]
 
-    def check_for_walls(self):
+    def check_for_building(self):
         coords = self.coords()
-        if (coords[0] + self.dx) <= 0 or (coords[2] + self.dx) >= self.canvas_width:
-            self.dx = 0
+        self.dx = max(self.dx, -coords[0]) # left wall
+        self.dx = min(self.dx, self.canvas_width - coords[2]) # right wall
+        self.dy = min(self.dy, self.canvas_height - coords[3]) # floor
+
+    def handle_jumping(self):
+        if self.dy >= 0:
+            return # not jumping
+        # jumping
+        self.jump_count += 1
+        if self.jump_count > 12:
+            self.dy = self.jump_move # reached the top, start falling
 
     def animate(self):
         if (time.time() - self.image_time) < 0.1:
@@ -76,7 +95,7 @@ for x in range(0, 5):
     for y in range(0, 5):
         canvas.create_image(x * w, y * h, image=background, anchor='nw')
 
-man = Man(canvas, 6)
+man = Man(canvas, 4)
 
 def handle_timer_event():
     man.move()
