@@ -164,14 +164,14 @@ class StickFigureSprite(Sprite):
         Sprite.__init__(self, game)
 
         self.images_left = [
-            PhotoImage(file="stick-l1.gif"),
-            PhotoImage(file="stick-l2.gif"),
-            PhotoImage(file="stick-l3.gif")
+            PhotoImage(file="stick-L1.gif"),
+            PhotoImage(file="stick-L2.gif"),
+            PhotoImage(file="stick-L3.gif")
         ]
         self.images_right = [
-            PhotoImage(file="stick-r1.gif"),
-            PhotoImage(file="stick-r2.gif"),
-            PhotoImage(file="stick-r3.gif")
+            PhotoImage(file="stick-R1.gif"),
+            PhotoImage(file="stick-R2.gif"),
+            PhotoImage(file="stick-R3.gif")
         ]
 
         self.image = game.canvas.create_image(200, 470, image=self.images_left[0], anchor='nw')

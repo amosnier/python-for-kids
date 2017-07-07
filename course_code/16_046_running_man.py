@@ -1,9 +1,15 @@
 import tkinter
 import time
+from enum import Enum, auto
 
 tk = tkinter.Tk()
 
 class Man:
+    class Direction(Enum):
+        NONE = auto()
+        LEFT = auto()
+        RIGHT = auto()
+        
     def __init__(self, canvas, normal_move):
         self.canvas = canvas
         self.normal_move = normal_move
@@ -22,33 +28,50 @@ class Man:
         self.image_index = 0
         self.image_index_incr = 1
         self.image_time = time.time()
-        self.id = canvas.create_image(start_x, start_y, image=self.left_images[0], anchor='sw')
-        self.canvas.bind_all('<KeyPress-Left>', self.turn_left)
-        self.canvas.bind_all('<KeyPress-Right>', self.turn_right)
-        self.dx = 0
+        self.id = canvas.create_image(start_x, start_y - self.left_images[0].height(), image=self.left_images[0], anchor='nw')
+        self.direction = Man.Direction.NONE
+        self.canvas.bind_all('<KeyPress-Left>', self.on_left_pressed)
+        self.canvas.bind_all('<KeyPress-Right>', self.on_right_pressed)
+        self.canvas.bind_all('<KeyRelease-Left>', self.on_left_released)
+        self.canvas.bind_all('<KeyRelease-Right>', self.on_right_released)
 
-    def turn_left(self, event):
-        self.dx = -self.normal_move
-            
-    def turn_right(self, event):
-        self.dx = self.normal_move
+    def on_left_pressed(self, event):
+        self.direction = Man.Direction.LEFT
         
+    def on_right_pressed(self, event):
+        self.direction = Man.Direction.RIGHT
+        
+    def on_left_released(self, event):
+        if self.direction == Man.Direction.LEFT:
+            self.direction = Man.Direction.NONE
+
+    def on_right_released(self, event):
+        if self.direction == Man.Direction.RIGHT:
+            self.direction = Man.Direction.NONE
+
     def move(self):
-        self.check_for_walls()
-        self.canvas.move(self.id, self.dx, 0)
-        self.animate()
+        if self.direction == Man.Direction.LEFT:
+            dx = -self.normal_move
+        elif self.direction == Man.Direction.RIGHT:
+            dx = self.normal_move
+        else:
+            dx = 0
+        dx = self.dx_corrected_for_walls(dx)
+        self.canvas.move(self.id, dx, 0)
+        self.animate(dx)
+
+    def dx_corrected_for_walls(self, dx):
+        coords = self.coords()
+        new_dx = max(dx, -coords[0])
+        new_dx = min(new_dx, self.canvas_width - coords[2])
+        return new_dx
 
     def coords(self):
         coords = self.canvas.coords(self.id)
         return [coords[0], coords[1],
                 coords[0] + self.left_images[0].width(), coords[1] + self.left_images[0].height()]
 
-    def check_for_walls(self):
-        coords = self.coords()
-        if (coords[0] + self.dx) <= 0 or (coords[2] + self.dx) >= self.canvas_width:
-            self.dx = 0
-
-    def animate(self):
+    def animate(self, dx):
         if (time.time() - self.image_time) < 0.1:
             return
         self.image_time = time.time()
@@ -58,9 +81,9 @@ class Man:
             self.image_index += self.image_index_incr
         else:
             self.image_index = next
-        if self.dx < 0:
+        if dx < 0:
             canvas.itemconfig(self.id, image=self.left_images[self.image_index])
-        elif self.dx > 0:
+        elif dx > 0:
             canvas.itemconfig(self.id, image=self.right_images[self.image_index])
 
 tk.title('Mr. Stickman races for the exit')

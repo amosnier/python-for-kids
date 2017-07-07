@@ -1,4 +1,4 @@
-from tkinter import *
+ofrom tkinter import *
 import random
 import time
 

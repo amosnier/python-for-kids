@@ -1,5 +1,6 @@
 import tkinter
 import random
+from enum import Enum, auto
 
 class Ball:
     def __init__(self, canvas, color, normal_move):
@@ -19,8 +20,8 @@ class Ball:
         self.dy = -normal_move
 
     def move(self):
-        self.canvas.move(self.id, self.dx, self.dy)
         self.check_for_walls()
+        self.canvas.move(self.id, self.dx, self.dy)
 
     def check_for_walls(self):
         coords = self.canvas.coords(self.id)
@@ -34,6 +35,11 @@ class Ball:
             self.dx = -self.normal_move
 
 class Paddle:
+    class Direction(Enum):
+        NONE = auto()
+        LEFT = auto()
+        RIGHT = auto()
+        
     def __init__(self, canvas, color, normal_move):
         self.canvas = canvas
         self.normal_move = normal_move
@@ -43,24 +49,41 @@ class Paddle:
         self.size_y = 10
         start_x = self.canvas_width / 2
         self.id = canvas.create_rectangle(start_x, self.canvas_height - self.size_y, start_x + self.size_x, self.canvas_height, fill=color)
-        self.canvas.bind_all('<KeyPress-Left>', self.turn_left)
-        self.canvas.bind_all('<KeyPress-Right>', self.turn_right)
-        self.dx = 0
+        self.direction = Paddle.Direction.NONE
+        self.canvas.bind_all('<KeyPress-Left>', self.on_left_pressed)
+        self.canvas.bind_all('<KeyPress-Right>', self.on_right_pressed)
+        self.canvas.bind_all('<KeyRelease-Left>', self.on_left_released)
+        self.canvas.bind_all('<KeyRelease-Right>', self.on_right_released)
         
-    def turn_left(self, event):
-        self.dx = -self.normal_move
-            
-    def turn_right(self, event):
-        self.dx = self.normal_move
+    def on_left_pressed(self, event):
+        self.direction = Paddle.Direction.LEFT
+        
+    def on_right_pressed(self, event):
+        self.direction = Paddle.Direction.RIGHT
+        
+    def on_left_released(self, event):
+        if self.direction == Paddle.Direction.LEFT:
+            self.direction = Paddle.Direction.NONE
+
+    def on_right_released(self, event):
+        if self.direction == Paddle.Direction.RIGHT:
+            self.direction = Paddle.Direction.NONE
 
     def move(self):
-        self.check_for_walls()
-        self.canvas.move(self.id, self.dx, 0)
+        if self.direction == Paddle.Direction.LEFT:
+            dx = -self.normal_move
+        elif self.direction == Paddle.Direction.RIGHT:
+            dx = self.normal_move
+        else:
+            dx = 0
+        dx = self.dx_corrected_for_walls(dx)
+        self.canvas.move(self.id, dx, 0)
 
-    def check_for_walls(self):
+    def dx_corrected_for_walls(self, dx):
         coords = self.canvas.coords(self.id)
-        if (coords[0] + self.dx) <= 0 or (coords[2] + self.dx) >= self.canvas_width:
-            self.dx = 0
+        new_dx = max(dx, -coords[0])
+        new_dx = min(new_dx, self.canvas_width - coords[2])
+        return new_dx
 
 tk = tkinter.Tk()
 tk.title("Bounce")
