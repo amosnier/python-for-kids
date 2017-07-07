@@ -27,6 +27,15 @@ class Relative_position:
 def position_relative_to_canvas(canvas, coords):
     return Relative_position(-coords[0], -coords[1], canvas.winfo_width() - coords[2], canvas.winfo_height() - coords[3])
 
+class Platform:
+    def __init__(self, canvas, platform_type, x, y):
+        self.canvas = canvas
+        self.canvas_width = self.canvas.winfo_width()
+        self.canvas_height = self.canvas.winfo_height()
+        self.image_files = ['gif/platform1.gif', 'gif/platform2.gif', 'gif/platform3.gif']
+        self.image = tkinter.PhotoImage(file=self.image_files[platform_type])
+        self.id = canvas.create_image(x, y, image=self.image, anchor='nw')
+
 class Man:
     class Direction(Enum):
         NONE = auto()
@@ -136,6 +145,8 @@ for x in range(0, 5):
     for y in range(0, 5):
         canvas.create_image(x * w, y * h, image=background, anchor='nw')
 
+platforms = [Platform(canvas, 1, 100, 450),
+             Platform(canvas, 0, 300, 450)]
 man = Man(canvas, 6, 8)
 
 def handle_timer_event():

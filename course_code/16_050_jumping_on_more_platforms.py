@@ -4,6 +4,12 @@ from enum import Enum, auto
 
 tk = tkinter.Tk()
 
+def in_horizontal_contact(coords1, coords2):
+    return coords1[2] >= coords2[0] and coords1[0] <= coords2[2]
+
+def in_vertical_contact(coords1, coords2):
+    return coords1[3] >= coords2[1] and coords1[1] <= coords2[3]
+
 class Relative_position:
     def __init__(self, left, above, right, below):
         self.left = left
@@ -12,7 +18,7 @@ class Relative_position:
         self.below = below
         
     def jump_is_possible(self):
-        return self.below == 0
+        return self.below <= 0
 
     def corrected_dx(self, dx):
         dx = max(dx, self.left)
@@ -24,8 +30,34 @@ class Relative_position:
         dy = min(dy, self.below)
         return dy
 
+    def update_with_obstacle(self, item_coords, obstacle_coords):
+        if in_vertical_contact(item_coords, obstacle_coords):
+            if obstacle_coords[2] <= item_coords[0]:
+                self.left = max(self.left, obstacle_coords[2] - item_coords[0])
+            if obstacle_coords[0] >= item_coords[2]:
+                self.right = min(self.right, obstacle_coords[0] - item_coords[2])
+        if in_horizontal_contact(item_coords, obstacle_coords):
+            if obstacle_coords[3] <= item_coords[1]:
+                self.above = max(self.above, obstacle_coords[3] - item_coords[1])
+            if obstacle_coords[1] >= item_coords[3]:
+                self.below = min(self.below, obstacle_coords[1] - item_coords[3])
+
 def position_relative_to_canvas(canvas, coords):
     return Relative_position(-coords[0], -coords[1], canvas.winfo_width() - coords[2], canvas.winfo_height() - coords[3])
+
+class Platform:
+    def __init__(self, canvas, platform_type, x, y):
+        self.canvas = canvas
+        self.canvas_width = self.canvas.winfo_width()
+        self.canvas_height = self.canvas.winfo_height()
+        self.image_files = ['gif/platform1.gif', 'gif/platform2.gif', 'gif/platform3.gif']
+        self.image = tkinter.PhotoImage(file=self.image_files[platform_type])
+        self.id = canvas.create_image(x, y, image=self.image, anchor='nw')
+
+    def coords(self):
+        coords = self.canvas.coords(self.id)
+        return [coords[0], coords[1],
+                coords[0] + self.image.width(), coords[1] + self.image.height()]
 
 class Man:
     class Direction(Enum):
@@ -33,8 +65,9 @@ class Man:
         LEFT = auto()
         RIGHT = auto()
         
-    def __init__(self, canvas, moving_dx, moving_dy):
+    def __init__(self, canvas, platforms, moving_dx, moving_dy):
         self.canvas = canvas
+        self.platforms = platforms
         self.moving_dx = moving_dx
         self.moving_dy = moving_dy
         self.canvas_width = self.canvas.winfo_width()
@@ -84,6 +117,8 @@ class Man:
     def move(self):
         coords = self.coords()
         relative_position = position_relative_to_canvas(self.canvas, coords)
+        for platform in self.platforms:
+            relative_position.update_with_obstacle(coords, platform.coords())
         if self.direction == Man.Direction.LEFT:
             dx = -self.moving_dx
         elif self.direction == Man.Direction.RIGHT:
@@ -100,6 +135,9 @@ class Man:
         else:
             dy = self.moving_dy
         dy = relative_position.corrected_dy(dy)
+        # Handle the case were an obstacle might have stopped jumping
+        if dy >= 0:
+            self.jump_counter = 0
         self.canvas.move(self.id, dx, dy)
         self.animate(dx)
 
@@ -136,7 +174,19 @@ for x in range(0, 5):
     for y in range(0, 5):
         canvas.create_image(x * w, y * h, image=background, anchor='nw')
 
-man = Man(canvas, 6, 8)
+platforms = [Platform(canvas, 1, 100, 425),
+             Platform(canvas, 0, 300, 425),
+             Platform(canvas, 2, 50, 350),
+             Platform(canvas, 0, 200, 350),
+             Platform(canvas, 2, 400, 350),
+             Platform(canvas, 0, 50, 275),
+             Platform(canvas, 2, 200, 275),
+             Platform(canvas, 0, 350, 275),
+             Platform(canvas, 1, 200, 200),
+             Platform(canvas, 1, 350, 200),
+             Platform(canvas, 2, 150, 125),
+             Platform(canvas, 1, 0, 50)]
+man = Man(canvas, platforms, 6, 8)
 
 def handle_timer_event():
     man.move()
