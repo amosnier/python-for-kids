@@ -1,7 +1,8 @@
 import turtle
+turtle.clearscreen()
 t = turtle.Turtle()
 
-turtle.tracer(0, 0)
+#turtle.tracer(0, 0)
 
 t.fillcolor(0.9, 0.9, 0.6)
 
@@ -73,5 +74,3 @@ for i in range(60, 120):
 t.end_fill()
 
 turtle.update()
-
-turtle.done()
