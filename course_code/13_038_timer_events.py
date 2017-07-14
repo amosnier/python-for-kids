@@ -7,7 +7,7 @@ tk = tkinter.Tk()
 
 def handle_timer_event():
     print(time.asctime())
-    tk.after(1000, handle_timer_event)
+    tk.after(50, handle_timer_event)
 
 handle_timer_event()
 tk.mainloop()

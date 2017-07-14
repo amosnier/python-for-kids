@@ -29,8 +29,6 @@ print()
 class Zombie(Monster):
     def __init__(self, name):
         Monster.__init__(self, name, 75, 'zombie')
-    def greet(self):
-        Monster.greet(self)
         
 bob = Zombie("Bob")
 bob.greet()
@@ -39,8 +37,6 @@ print()
 class Goblin(Monster):
     def __init__(self, name):
         Monster.__init__(self, name, 200, 'goblin')
-    def greet(self):
-        Monster.greet(self)
 
 alice = Goblin("Alice")
 alice.greet()
@@ -49,8 +45,6 @@ print()
 class Troll(Monster):
     def __init__(self, name):
         Monster.__init__(self, name, race = 'troll')
-    def greet(self):
-        Monster.greet(self)
 
 john = Troll("John")
 john.greet()
