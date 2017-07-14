@@ -2,7 +2,7 @@ import tkinter
 from enum import Enum, auto
 
 class Ball:
-    def __init__(self, canvas, x, y, size, color, step_size):
+    def __init__(self, canvas, racket, x, y, size, color, step_size):
         self.canvas = canvas
         self.step_size = step_size
         self.id = canvas.create_oval(x, y, x + size, y + size, fill=color)
@@ -10,10 +10,14 @@ class Ball:
         self.canvas_height = self.canvas.winfo_height()
         self.dx = self.step_size
         self.dy = self.step_size
+        self.racket = racket
     
     def move(self):
         self.canvas.move(self.id, self.dx, self.dy)
         coords = self.canvas.coords(self.id)
+        racket_coords = self.racket.coords()
+        if self.racket_reached(coords, racket_coords):
+            self.dy = -self.step_size
         if self.right_border_reached(coords):
             self.dx = -self.step_size
         if self.bottom_border_reached(coords):
@@ -34,6 +38,9 @@ class Ball:
 
     def top_border_reached(self, coords):
         return coords[1] < 0
+    
+    def racket_reached(self, ball_coords, racket_coords):
+        return ball_coords[3] > racket_coords[1] and ball_coords[2] > racket_coords[0] and  ball_coords[0] < racket_coords[2]
 
 class Racket:
     class Direction(Enum):
@@ -69,7 +76,14 @@ class Racket:
 
     def move(self):
         dx = 0
-        
+        if self.direction == Racket.Direction.LEFT:
+            dx = -self.step_size
+        elif self.direction == Racket.Direction.RIGHT:
+            dx = self.step_size
+        self.canvas.move(self.id, dx, 0)
+
+    def coords(self):
+        return self.canvas.coords(self.id)
 
 tk = tkinter.Tk()
 
@@ -86,11 +100,12 @@ canvas.pack()
 
 tk.update() # necessary for winfo_xxx functions to work
 
-ball = Ball(canvas, 100, 100, 15, 'coral', 5)
 racket = Racket(canvas, 250, 370, 80, 10, 'lightgreen', 3)
+ball = Ball(canvas, racket, 100, 100, 15, 'coral', 5)
 
 def handle_timer_event():
     ball.move()
+    racket.move()
     tk.after(20, handle_timer_event)
 
 handle_timer_event()
